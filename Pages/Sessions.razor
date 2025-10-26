@@ -1,0 +1,339 @@
+@page "/sessions"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@using Microsoft.JSInterop
+@inject IClientService ClientService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Gym Sessions - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-clock me-2"></i>
+                Gym Sessions
+            </h1>
+            <p class="text-muted">Track gym entrance and exit times</p>
+        </div>
+        <button class="btn btn-primary" @onclick="StartSession">
+            <i class="fas fa-play me-2"></i>
+            Start Session
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-success">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@activeSessions</h3>
+                        <p class="text-muted mb-0">Currently in Gym</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-info">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@todaySessions</h3>
+                        <p class="text-muted mb-0">Today's Sessions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-warning">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@lockersInUse</h3>
+                        <p class="text-muted mb-0">Lockers in Use</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-primary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@averageDuration</h3>
+                        <p class="text-muted mb-0">Avg Duration (min)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Search by client name..." @bind="searchTerm" @oninput="OnSearch" />
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>
+                Refresh
+            </button>
+            <button class="btn btn-outline-success" @onclick="ExportSessions">
+                <i class="fas fa-download me-2"></i>
+                Export
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading gym sessions...</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>
+                Current Gym Sessions
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (sessions.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Client</th>
+                                <th>Entrance Time</th>
+                                <th>Duration</th>
+                                <th>Locker</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var session in sessions)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(session.Client.ImagePath))
+                                            {
+                                                <img src="@session.Client.ImagePath" class="rounded-circle me-2" width="32" height="32" alt="Client photo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@session.Client.FirstName @session.Client.LastName</div>
+                                                <small class="text-muted">@session.Client.PhoneNumber</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@session.EntranceTime.ToString("HH:mm")</div>
+                                        <small class="text-muted">@session.EntranceTime.ToString("MMM dd, yyyy")</small>
+                                    </td>
+                                    <td>
+                                        @if (session.ExitTime.HasValue)
+                                        {
+                                            var duration = session.ExitTime.Value - session.EntranceTime;
+                                            <span class="fw-bold">@((int)duration.TotalMinutes) min</span>
+                                        }
+                                        else
+                                        {
+                                            var duration = DateTime.Now - session.EntranceTime;
+                                            <span class="fw-bold text-success">@((int)duration.TotalMinutes) min</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (session.LockerNumber.HasValue)
+                                        {
+                                            <span class="badge bg-info">#@session.LockerNumber</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (session.ExitTime.HasValue)
+                                        {
+                                            <span class="badge bg-secondary">Completed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!session.ExitTime.HasValue)
+                                        {
+                                            <button class="btn btn-sm btn-danger" @onclick="() => EndSession(session.Id)" title="End Session">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewSession(session.Id)" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No active sessions</h5>
+                    <p class="text-muted">No clients are currently in the gym</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<GymSession> sessions = new();
+    private bool isLoading = true;
+    private string searchTerm = string.Empty;
+    
+    private int activeSessions = 0;
+    private int todaySessions = 0;
+    private int lockersInUse = 0;
+    private int averageDuration = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSessions();
+    }
+
+    private async Task LoadSessions()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            // Load active sessions (no exit time)
+            var allClients = await ClientService.GetAllClientsAsync();
+            sessions = allClients
+                .SelectMany(c => c.GymSessions)
+                .Where(gs => gs.ExitTime == null)
+                .OrderByDescending(gs => gs.EntranceTime)
+                .ToList();
+
+            // Calculate statistics
+            activeSessions = sessions.Count;
+            todaySessions = allClients
+                .SelectMany(c => c.GymSessions)
+                .Count(gs => gs.EntranceTime.Date == DateTime.Today);
+            
+            lockersInUse = sessions.Count(s => s.LockerNumber.HasValue);
+            
+            // Calculate average duration for completed sessions
+            var completedSessions = allClients
+                .SelectMany(c => c.GymSessions)
+                .Where(gs => gs.ExitTime.HasValue)
+                .ToList();
+            
+            if (completedSessions.Any())
+            {
+                averageDuration = (int)completedSessions
+                    .Average(gs => (gs.ExitTime!.Value - gs.EntranceTime).TotalMinutes);
+            }
+
+            // Filter by search term
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                sessions = sessions.Where(s => 
+                    s.Client.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    s.Client.LastName!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading sessions: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnSearch(ChangeEventArgs e)
+    {
+        await LoadSessions();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadSessions();
+    }
+
+    private void StartSession()
+    {
+        Navigation.NavigateTo("/sessions/start");
+    }
+
+    private void EndSession(long sessionId)
+    {
+        // Implement end session logic
+        Navigation.NavigateTo($"/sessions/{sessionId}/end");
+    }
+
+    private void ViewSession(long sessionId)
+    {
+        Navigation.NavigateTo($"/sessions/{sessionId}");
+    }
+
+    private void ExportSessions()
+    {
+        JSRuntime.InvokeVoidAsync("exportToCSV", sessions, "gym-sessions.csv");
+    }
+}

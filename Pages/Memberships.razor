@@ -1,0 +1,259 @@
+@page "/memberships"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@using Microsoft.JSInterop
+@inject IMembershipService MembershipService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Memberships - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-id-card me-2"></i>
+                Memberships
+            </h1>
+            <p class="text-muted">Manage client memberships and subscriptions</p>
+        </div>
+        <button class="btn btn-primary" @onclick="AddMembership">
+            <i class="fas fa-plus me-2"></i>
+            Add New Membership
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="btn-group" role="group">
+            <button class="btn @(filterType == "all" ? "btn-primary" : "btn-outline-primary")" @onclick="FilterAll">
+                All Memberships
+            </button>
+            <button class="btn @(filterType == "active" ? "btn-primary" : "btn-outline-primary")" @onclick="FilterActive">
+                Active
+            </button>
+            <button class="btn @(filterType == "expired" ? "btn-primary" : "btn-outline-primary")" @onclick="FilterExpired">
+                Expired
+            </button>
+            <button class="btn @(filterType == "expiring" ? "btn-primary" : "btn-outline-primary")" @onclick="FilterExpiring">
+                Expiring Soon
+            </button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading memberships...</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            @if (memberships.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Client</th>
+                                <th>Package</th>
+                                <th>Instructor</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var membership in memberships)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(membership.Client.ImagePath))
+                                            {
+                                                <img src="@membership.Client.ImagePath" class="rounded-circle me-2" width="32" height="32" alt="Client photo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@membership.Client.FirstName @membership.Client.LastName</div>
+                                                <small class="text-muted">@membership.Client.PhoneNumber</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@membership.Package.PackageName</div>
+                                        <small class="text-muted">@membership.Package.Duration</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@membership.Instructor.FirstName @membership.Instructor.LastName</div>
+                                        <small class="text-muted">@membership.Instructor.Title</small>
+                                    </td>
+                                    <td>@membership.StartDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@membership.EndDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        @if (membership.IsPaid && membership.EndDate >= DateTime.Today)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else if (membership.EndDate < DateTime.Today)
+                                        {
+                                            <span class="badge bg-danger">Expired</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Unpaid</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (membership.IsPaid)
+                                        {
+                                            <span class="badge bg-success">Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewMembership(membership.Id)" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" @onclick="() => EditMembership(membership.Id)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMembership(membership.Id)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-id-card fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No memberships found</h5>
+                    <p class="text-muted">Start by creating your first membership</p>
+                    <button class="btn btn-primary" @onclick="AddMembership">
+                        <i class="fas fa-plus me-2"></i>
+                        Create First Membership
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Membership> memberships = new();
+    private bool isLoading = true;
+    private string filterType = "all";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMemberships();
+    }
+
+    private async Task LoadMemberships()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            switch (filterType)
+            {
+                case "active":
+                    memberships = (await MembershipService.GetActiveMembershipsAsync()).ToList();
+                    break;
+                case "expired":
+                    var allMemberships = await MembershipService.GetAllMembershipsAsync();
+                    memberships = allMemberships.Where(m => m.EndDate < DateTime.Today).ToList();
+                    break;
+                case "expiring":
+                    memberships = (await MembershipService.GetExpiringMembershipsAsync(7)).ToList();
+                    break;
+                default:
+                    memberships = (await MembershipService.GetAllMembershipsAsync()).ToList();
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading memberships: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetFilter(string filter)
+    {
+        filterType = filter;
+        await LoadMemberships();
+    }
+
+    private async Task FilterAll() => await SetFilter("all");
+    private async Task FilterActive() => await SetFilter("active");
+    private async Task FilterExpired() => await SetFilter("expired");
+    private async Task FilterExpiring() => await SetFilter("expiring");
+
+    private async Task RefreshData()
+    {
+        await LoadMemberships();
+    }
+
+    private void AddMembership()
+    {
+        Navigation.NavigateTo("/memberships/add");
+    }
+
+    private void ViewMembership(long membershipId)
+    {
+        Navigation.NavigateTo($"/memberships/{membershipId}");
+    }
+
+    private void EditMembership(long membershipId)
+    {
+        Navigation.NavigateTo($"/memberships/{membershipId}/edit");
+    }
+
+    private async Task DeleteMembership(long membershipId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Are you sure you want to delete this membership?" });
+        if (confirmed)
+        {
+            await MembershipService.DeleteMembershipAsync(membershipId);
+            await LoadMemberships();
+        }
+    }
+}

@@ -1,0 +1,237 @@
+@page "/clients"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@using Microsoft.JSInterop
+@inject IClientService ClientService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Clients - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-users me-2"></i>
+                Clients Management
+            </h1>
+            <p class="text-muted">Manage gym members and their information</p>
+        </div>
+        <button class="btn btn-primary" @onclick="AddClient">
+            <i class="fas fa-plus me-2"></i>
+            Add New Client
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Search clients..." @bind="searchTerm" @oninput="OnSearch" />
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>
+                Refresh
+            </button>
+            <button class="btn btn-outline-success" @onclick="ExportData">
+                <i class="fas fa-download me-2"></i>
+                Export
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading clients...</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            @if (clients.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Locker</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var client in clients)
+                            {
+                                <tr>
+                                    <td>@client.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(client.ImagePath))
+                                            {
+                                                <img src="@client.ImagePath" class="rounded-circle me-2" width="32" height="32" alt="Client photo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@client.FirstName @client.LastName</div>
+                                                <small class="text-muted">@client.SocialNumber</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@client.PhoneNumber</td>
+                                    <td>@(client.Email ?? "N/A")</td>
+                                    <td>
+                                        @if (client.Locker.HasValue)
+                                        {
+                                            <span class="badge bg-info">#@client.Locker</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (client.Memberships.Any(m => m.IsPaid && m.EndDate >= DateTime.Today))
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewClient(client.Id)" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" @onclick="() => EditClient(client.Id)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteClient(client.Id)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No clients found</h5>
+                    <p class="text-muted">Start by adding your first client</p>
+                    <button class="btn btn-primary" @onclick="AddClient">
+                        <i class="fas fa-plus me-2"></i>
+                        Add First Client
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Client> clients = new();
+    private bool isLoading = true;
+    private string searchTerm = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadClients();
+    }
+
+    private async Task LoadClients()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                clients = (await ClientService.GetAllClientsAsync()).ToList();
+            }
+            else
+            {
+                clients = (await ClientService.SearchClientsAsync(searchTerm)).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error loading clients: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnSearch(ChangeEventArgs e)
+    {
+        await LoadClients();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadClients();
+    }
+
+    private void AddClient()
+    {
+        Navigation.NavigateTo("/clients/add");
+    }
+
+    private void ViewClient(long clientId)
+    {
+        Navigation.NavigateTo($"/clients/{clientId}");
+    }
+
+    private void EditClient(long clientId)
+    {
+        Navigation.NavigateTo($"/clients/{clientId}/edit");
+    }
+
+    private async Task DeleteClient(long clientId)
+    {
+        // Implement delete confirmation and logic
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this client?");
+        if (confirmed)
+        {
+            await ClientService.DeleteClientAsync(clientId);
+            await LoadClients();
+        }
+    }
+
+    private void ExportData()
+    {
+        // Implement export functionality
+        JSRuntime.InvokeVoidAsync("exportToCSV", clients);
+    }
+}

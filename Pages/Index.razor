@@ -1,0 +1,189 @@
+@page "/"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@inject IClientService ClientService
+@inject IMembershipService MembershipService
+@inject IPaymentService PaymentService
+@inject ILockerService LockerService
+
+<PageTitle>Dashboard - ASA Gym Management</PageTitle>
+
+<div class="dashboard-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 text-primary">
+                <i class="fas fa-dumbbell me-3"></i>
+                ASA Gym Management Dashboard
+            </h1>
+            <p class="lead text-muted">Welcome to your gym management system</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0">@totalClients</h3>
+                            <p class="text-muted mb-0">Total Clients</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-success">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0">@activeMemberships</h3>
+                            <p class="text-muted mb-0">Active Memberships</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-warning">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0">@availableLockers</h3>
+                            <p class="text-muted mb-0">Available Lockers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-info">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0">@todayPayments</h3>
+                            <p class="text-muted mb-0">Today's Payments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (recentClients.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var client in recentClients.Take(5))
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">@client.FirstName @client.LastName</h6>
+                                        <small class="text-muted">@client.PhoneNumber</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">New</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent activity</p>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Expiring Memberships
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (expiringMemberships.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var membership in expiringMemberships.Take(3))
+                            {
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">@membership.Client.FirstName @membership.Client.LastName</h6>
+                                    <small class="text-muted">Expires: @membership.EndDate.ToString("MMM dd, yyyy")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No expiring memberships</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalClients = 0;
+    private int activeMemberships = 0;
+    private int availableLockers = 0;
+    private int todayPayments = 0;
+    private List<Client> recentClients = new();
+    private List<Membership> expiringMemberships = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            var clients = await ClientService.GetAllClientsAsync();
+            totalClients = clients.Count();
+            recentClients = clients.OrderByDescending(c => c.CreatedAt).ToList();
+
+            var memberships = await MembershipService.GetActiveMembershipsAsync();
+            activeMemberships = memberships.Count();
+            expiringMemberships = (await MembershipService.GetExpiringMembershipsAsync(7)).ToList();
+
+            availableLockers = await LockerService.GetAvailableLockerCountAsync();
+
+            var today = DateTime.Today;
+            var payments = await PaymentService.GetPaymentsByDateRangeAsync(today, today.AddDays(1));
+            todayPayments = payments.Count();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+    }
+}

@@ -1,0 +1,302 @@
+@page "/lockers"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@using Microsoft.JSInterop
+@inject ILockerService LockerService
+@inject IClientService ClientService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Locker Room - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-lock me-2"></i>
+                Locker Room Management
+            </h1>
+            <p class="text-muted">Manage locker assignments and availability</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>
+                Refresh
+            </button>
+            <button class="btn btn-primary" @onclick="ShowAssignLockerModal">
+                <i class="fas fa-plus me-2"></i>
+                Assign Locker
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-success">
+                        <i class="fas fa-lock-open"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@availableLockers</h3>
+                        <p class="text-muted mb-0">Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-warning">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@assignedLockers</h3>
+                        <p class="text-muted mb-0">Assigned</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-info">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@occupancyRate%</h3>
+                        <p class="text-muted mb-0">Occupancy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0">@totalClients</h3>
+                        <p class="text-muted mb-0">Total Clients</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading locker data...</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>
+                Locker Assignments
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @for (int i = 1; i <= 200; i++)
+                {
+                    var client = lockerAssignments.ContainsKey(i) ? lockerAssignments[i] : null;
+                    var isAssigned = client != null;
+                    
+                    <div class="col-md-2 col-sm-3 col-4 mb-3">
+                        <div class="card locker-card @(isAssigned ? "assigned" : "available")" @onclick="() => OnLockerClick(i, isAssigned)">
+                            <div class="card-body text-center p-2">
+                                <div class="locker-number">#@i</div>
+                                @if (isAssigned)
+                                {
+                                    <div class="client-info">
+                                        <div class="client-name">@client!.FirstName</div>
+                                        <div class="client-name">@client!.LastName</div>
+                                        <small class="text-muted">@client!.PhoneNumber</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="locker-status">
+                                        <i class="fas fa-lock-open text-success"></i>
+                                        <div class="status-text">Available</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Assign Locker Modal -->
+@if (showAssignModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Locker</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAssignModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Client</label>
+                        <select class="form-select" @bind="selectedClientId">
+                            <option value="">Choose a client...</option>
+                            @foreach (var client in availableClients)
+                            {
+                                <option value="@client.Id">@client.FirstName @client.LastName - @client.PhoneNumber</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Locker Number</label>
+                        <select class="form-select" @bind="selectedLockerNumber">
+                            <option value="">Choose a locker...</option>
+                            @foreach (var locker in availableLockerNumbers)
+                            {
+                                <option value="@locker">Locker #@locker</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAssignModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="AssignLocker" disabled="@(selectedClientId == 0 || selectedLockerNumber == 0)">
+                        Assign Locker
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Dictionary<int, Client?> lockerAssignments = new();
+    private List<Client> availableClients = new();
+    private List<int> availableLockerNumbers = new();
+    private bool isLoading = true;
+    private bool showAssignModal = false;
+    private long selectedClientId = 0;
+    private int selectedLockerNumber = 0;
+    
+    private int availableLockers = 0;
+    private int assignedLockers = 0;
+    private int totalClients = 0;
+    private int occupancyRate = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLockerData();
+    }
+
+    private async Task LoadLockerData()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            // Load locker assignments
+            lockerAssignments = await LockerService.GetLockerAssignmentsAsync();
+            
+            // Load statistics
+            availableLockers = await LockerService.GetAvailableLockerCountAsync();
+            assignedLockers = 200 - availableLockers;
+            totalClients = (await ClientService.GetAllClientsAsync()).Count();
+            occupancyRate = (int)((double)assignedLockers / 200 * 100);
+            
+            // Load available clients and lockers for assignment
+            availableClients = (await ClientService.GetAllClientsAsync()).ToList();
+            availableLockerNumbers = (await LockerService.GetAvailableLockersAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading locker data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadLockerData();
+    }
+
+    private void OnLockerClick(int lockerNumber, bool isAssigned)
+    {
+        if (isAssigned)
+        {
+            // Show locker details or release option
+            var client = lockerAssignments[lockerNumber];
+            if (client != null)
+            {
+                // Show client details or release locker option
+                Console.WriteLine($"Locker #{lockerNumber} is assigned to {client.FirstName} {client.LastName}");
+            }
+        }
+        else
+        {
+            // Show assignment option
+            selectedLockerNumber = lockerNumber;
+            ShowAssignLockerModal();
+        }
+    }
+
+    private void ShowAssignLockerModal()
+    {
+        showAssignModal = true;
+        selectedClientId = 0;
+        selectedLockerNumber = 0;
+    }
+
+    private void CloseAssignModal()
+    {
+        showAssignModal = false;
+        selectedClientId = 0;
+        selectedLockerNumber = 0;
+    }
+
+    private async Task AssignLocker()
+    {
+        if (selectedClientId > 0 && selectedLockerNumber > 0)
+        {
+            var success = await LockerService.AssignLockerAsync(selectedClientId, selectedLockerNumber);
+            if (success)
+            {
+                await LoadLockerData();
+                CloseAssignModal();
+                await JSRuntime.InvokeVoidAsync("showToast", "Locker assigned successfully!", "success");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Failed to assign locker. Please try again.", "danger");
+            }
+        }
+    }
+}

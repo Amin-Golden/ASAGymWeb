@@ -1,0 +1,222 @@
+@page "/payments"
+@using Gym.Web.Services
+@using Gym.Web.Models
+@using Microsoft.JSInterop
+@inject IPaymentService PaymentService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Payments - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-credit-card me-2"></i>
+                Payments
+            </h1>
+            <p class="text-muted">Manage payment records and transactions</p>
+        </div>
+        <button class="btn btn-primary" @onclick="AddPayment">
+            <i class="fas fa-plus me-2"></i>
+            Add New Payment
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-calendar"></i>
+            </span>
+            <input type="date" class="form-control" @bind="startDate" @bind:after="OnDateChange" />
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>
+                Refresh
+            </button>
+            <button class="btn btn-outline-success" @onclick="ExportPayments">
+                <i class="fas fa-download me-2"></i>
+                Export
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading payments...</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            @if (payments.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>Payment Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in payments)
+                            {
+                                <tr>
+                                    <td>@payment.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(payment.Client.ImagePath))
+                                            {
+                                                <img src="@payment.Client.ImagePath" class="rounded-circle me-2" width="32" height="32" alt="Client photo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@payment.Client.FirstName @payment.Client.LastName</div>
+                                                <small class="text-muted">@payment.Client.PhoneNumber</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@payment.PaymentType</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">$@GetPaymentAmount(payment)</span>
+                                    </td>
+                                    <td>@payment.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>@(payment.Description ?? "N/A")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewPayment(payment.Id)" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" @onclick="() => EditPayment(payment.Id)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePayment(payment.Id)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No payments found</h5>
+                    <p class="text-muted">Start by recording your first payment</p>
+                    <button class="btn btn-primary" @onclick="AddPayment">
+                        <i class="fas fa-plus me-2"></i>
+                        Record First Payment
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Payment> payments = new();
+    private bool isLoading = true;
+    private DateTime startDate = DateTime.Today.AddDays(-30);
+    private DateTime endDate = DateTime.Today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPayments();
+    }
+
+    private async Task LoadPayments()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            payments = (await PaymentService.GetPaymentsByDateRangeAsync(startDate, endDate)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading payments: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnDateChange()
+    {
+        endDate = startDate.AddDays(30);
+        await LoadPayments();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadPayments();
+    }
+
+    private void AddPayment()
+    {
+        Navigation.NavigateTo("/payments/add");
+    }
+
+    private void ViewPayment(long paymentId)
+    {
+        Navigation.NavigateTo($"/payments/{paymentId}");
+    }
+
+    private void EditPayment(long paymentId)
+    {
+        Navigation.NavigateTo($"/payments/{paymentId}/edit");
+    }
+
+    private async Task DeletePayment(long paymentId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this payment?");
+        if (confirmed)
+        {
+            await PaymentService.DeletePaymentAsync(paymentId);
+            await LoadPayments();
+        }
+    }
+
+    private void ExportPayments()
+    {
+        JSRuntime.InvokeVoidAsync("exportToCSV", payments, "payments.csv");
+    }
+
+    private decimal GetPaymentAmount(Payment payment)
+    {
+        // This would typically come from a related membership or package
+        // For now, return a placeholder amount
+        return 100; // Placeholder
+    }
+}

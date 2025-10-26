@@ -1,0 +1,203 @@
+@page "/settings"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Settings - ASA Gym Management</PageTitle>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-cog me-2"></i>
+                Settings
+            </h1>
+            <p class="text-muted">Configure your gym management system</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-palette me-2"></i>
+                    Appearance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Theme</label>
+                    <select class="form-select" @onchange="OnThemeChange">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Language</label>
+                    <select class="form-select">
+                        <option value="en">English</option>
+                        <option value="fa">فارسی</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" @onclick="SaveAppearanceSettings">
+                    <i class="fas fa-save me-2"></i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-database me-2"></i>
+                    Database
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Backup Database</label>
+                    <p class="text-muted small">Create a backup of your gym data</p>
+                    <button class="btn btn-outline-primary" @onclick="BackupDatabase">
+                        <i class="fas fa-download me-2"></i>
+                        Create Backup
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Restore Database</label>
+                    <p class="text-muted small">Restore from a previous backup</p>
+                    <input type="file" class="form-control" accept=".sql,.backup" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    Notifications
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked />
+                    <label class="form-check-label" for="emailNotifications">
+                        Email notifications
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="smsNotifications" />
+                    <label class="form-check-label" for="smsNotifications">
+                        SMS notifications
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="expiringMemberships" checked />
+                    <label class="form-check-label" for="expiringMemberships">
+                        Notify about expiring memberships
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Security
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Session Timeout</label>
+                    <select class="form-select">
+                        <option value="15">15 minutes</option>
+                        <option value="30" selected>30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="120">2 hours</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password Policy</label>
+                    <select class="form-select">
+                        <option value="weak">Weak (6+ characters)</option>
+                        <option value="medium" selected>Medium (8+ characters, numbers)</option>
+                        <option value="strong">Strong (12+ characters, numbers, symbols)</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline-warning" @onclick="ChangePassword">
+                    <i class="fas fa-key me-2"></i>
+                    Change Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Application Version:</strong><br />
+                        <span class="text-muted">1.0.0</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Database Version:</strong><br />
+                        <span class="text-muted">PostgreSQL 15</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Last Backup:</strong><br />
+                        <span class="text-muted">Never</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>System Status:</strong><br />
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private async Task OnThemeChange(ChangeEventArgs e)
+    {
+        var theme = e.Value?.ToString() ?? "light";
+        await JSRuntime.InvokeVoidAsync("applyTheme", theme);
+    }
+
+    private async Task SaveAppearanceSettings()
+    {
+        await JSRuntime.InvokeVoidAsync("showToast", "Settings saved successfully!", "success");
+    }
+
+    private async Task BackupDatabase()
+    {
+        await JSRuntime.InvokeVoidAsync("showToast", "Database backup started...", "info");
+    }
+
+    private void ChangePassword()
+    {
+        // Implement password change logic
+        JSRuntime.InvokeVoidAsync("showToast", "Password change feature coming soon!", "info");
+    }
+}

@@ -1,0 +1,28 @@
+﻿<Project>
+  <ItemGroup>
+    <StaticWebAssetEndpoint Include="_content/Gym.Web/css/app.css">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\app.css'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-ZvNwHm4N4CkpAq8Oj\u002BroUfWeMKKycZMHlqBlX34eFCo="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"5504"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022ZvNwHm4N4CkpAq8Oj\u002BroUfWeMKKycZMHlqBlX34eFCo=\u0022"},{"Name":"Last-Modified","Value":"Sat, 25 Oct 2025 13:39:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Gym.Web/css/app.yt7fecymy9.css">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\app.css'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"yt7fecymy9"},{"Name":"integrity","Value":"sha256-ZvNwHm4N4CkpAq8Oj\u002BroUfWeMKKycZMHlqBlX34eFCo="},{"Name":"label","Value":"_content/Gym.Web/css/app.css"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"5504"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022ZvNwHm4N4CkpAq8Oj\u002BroUfWeMKKycZMHlqBlX34eFCo=\u0022"},{"Name":"Last-Modified","Value":"Sat, 25 Oct 2025 13:39:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Gym.Web/js/app.2n0c01t7ec.js">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\app.js'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"2n0c01t7ec"},{"Name":"integrity","Value":"sha256-PsIp58TpOuU/CbYhkX0Gb//Bfc7XHLnWna1Rvgyp64s="},{"Name":"label","Value":"_content/Gym.Web/js/app.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"6555"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022PsIp58TpOuU/CbYhkX0Gb//Bfc7XHLnWna1Rvgyp64s=\u0022"},{"Name":"Last-Modified","Value":"Sat, 25 Oct 2025 13:39:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Gym.Web/js/app.js">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\app.js'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-PsIp58TpOuU/CbYhkX0Gb//Bfc7XHLnWna1Rvgyp64s="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"6555"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022PsIp58TpOuU/CbYhkX0Gb//Bfc7XHLnWna1Rvgyp64s=\u0022"},{"Name":"Last-Modified","Value":"Sat, 25 Oct 2025 13:39:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+  </ItemGroup>
+</Project>
