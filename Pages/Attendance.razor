@@ -3,6 +3,7 @@
 @using Gym.Web.Models
 @inject IAttendanceService AttendanceService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Attendance - ASA Gym Management</PageTitle>
 
@@ -28,7 +29,7 @@
             <span class="input-group-text">
                 <i class="fas fa-calendar"></i>
             </span>
-            <input type="date" class="form-control" @bind="selectedDate" @onchange="OnDateChange" />
+            <input type="date" class="form-control" value="@selectedDate.ToString("yyyy-MM-dd")" @onchange="OnDateChange" />
         </div>
     </div>
     <div class="col-md-4">
@@ -159,7 +160,7 @@ else
 }
 
 @code {
-    private List<Attendance> attendances = new();
+    private List<Gym.Web.Models.Attendance> attendances = new();
     private bool isLoading = true;
     private DateTime selectedDate = DateTime.Today;
     private string searchTerm = string.Empty;
@@ -200,13 +201,18 @@ else
         }
     }
 
-    private async Task OnDateChange()
+    private async Task OnDateChange(ChangeEventArgs e)
     {
+        if (DateTime.TryParse(e.Value?.ToString(), out DateTime newDate))
+        {
+            selectedDate = newDate;
+        }
         await LoadAttendance();
     }
 
     private async Task OnSearch(ChangeEventArgs e)
     {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
         await LoadAttendance();
     }
 
@@ -240,8 +246,8 @@ else
         }
     }
 
-    private void ExportAttendance()
+    private async Task ExportAttendance()
     {
-        JSRuntime.InvokeVoidAsync("exportToCSV", attendances, "attendance.csv");
+        await JSRuntime.InvokeVoidAsync("exportToCSV", attendances, "attendance.csv");
     }
 }

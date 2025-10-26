@@ -96,7 +96,7 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<Client>()
             .HasIndex(c => c.Locker)
-            .HasFilter("Locker IS NOT NULL");
+            .HasFilter("\"Locker\" IS NOT NULL");
 
         builder.Entity<Membership>()
             .HasIndex(m => m.ClientId);

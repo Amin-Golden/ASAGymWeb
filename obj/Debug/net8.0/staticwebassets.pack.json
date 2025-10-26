@@ -1,11 +1,11 @@
 {
   "Files": [
     {
-      "Id": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\css\\app.css",
+      "Id": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\css\\app.css",
       "PackagePath": "staticwebassets\\css\\app.css"
     },
     {
-      "Id": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\js\\app.js",
+      "Id": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\js\\app.js",
       "PackagePath": "staticwebassets\\js\\app.js"
     },
     {

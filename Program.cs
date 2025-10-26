@@ -13,10 +13,6 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.PostgreSQL(
-        connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
-        tableName: "logs",
-        needAutoCreateTable: true)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -76,10 +72,17 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 // Ensure database is created
-using (var scope = app.Services.CreateScope())
+try
 {
-    var context = scope.ServiceProvider.GetRequiredService<GymDbContext>();
-    context.Database.EnsureCreated();
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<GymDbContext>();
+        context.Database.EnsureCreated();
+    }
+}
+catch (Exception ex)
+{
+    Log.Warning("Database creation failed: {Message}", ex.Message);
 }
 
 app.Run();

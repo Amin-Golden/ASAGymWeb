@@ -5390,11 +5390,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\Gym.Web.csproj",
+      "projectUniqueName": "E:\\Projects\\gym\\ASAGymWeb\\Gym.Web.csproj",
       "projectName": "Gym.Web",
-      "projectPath": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\Gym.Web.csproj",
+      "projectPath": "E:\\Projects\\gym\\ASAGymWeb\\Gym.Web.csproj",
       "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
-      "outputPath": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\obj\\",
+      "outputPath": "E:\\Projects\\gym\\ASAGymWeb\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

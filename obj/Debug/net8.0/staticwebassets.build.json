@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "75INVum0pZ6H4q5uTeXfsy9ZPQ9Ye8obNLSECcdLEfg=",
+  "Hash": "1jvpnOHrgTMrGvLQisoGyGoXQn/jppFaGaNHvGqUwi0=",
   "Source": "Gym.Web",
   "BasePath": "_content/Gym.Web",
   "Mode": "Default",
@@ -10,7 +10,7 @@
     {
       "Name": "Gym.Web\\wwwroot",
       "Source": "Gym.Web",
-      "ContentRoot": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\",
+      "ContentRoot": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\",
       "BasePath": "_content/Gym.Web",
       "Pattern": "**"
     }
@@ -1277,10 +1277,10 @@
       "OriginalItemSpec": "C:\\Users\\HP\\.nuget\\packages\\microsoft.aspnetcore.identity.ui\\8.0.0\\staticwebassets\\V5\\lib\\jquery\\LICENSE.txt"
     },
     {
-      "Identity": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\css\\app.css",
+      "Identity": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\css\\app.css",
       "SourceId": "Gym.Web",
       "SourceType": "Discovered",
-      "ContentRoot": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\",
+      "ContentRoot": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\",
       "BasePath": "_content/Gym.Web",
       "RelativePath": "css/app#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -1298,10 +1298,10 @@
       "OriginalItemSpec": "wwwroot\\css\\app.css"
     },
     {
-      "Identity": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\js\\app.js",
+      "Identity": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\js\\app.js",
       "SourceId": "Gym.Web",
       "SourceType": "Discovered",
-      "ContentRoot": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\",
+      "ContentRoot": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\",
       "BasePath": "_content/Gym.Web",
       "RelativePath": "js/app#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1322,7 +1322,7 @@
   "Endpoints": [
     {
       "Route": "css/app.css",
-      "AssetFile": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\css\\app.css",
+      "AssetFile": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\css\\app.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1359,7 +1359,7 @@
     },
     {
       "Route": "css/app.yt7fecymy9.css",
-      "AssetFile": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\css\\app.css",
+      "AssetFile": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\css\\app.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3624,7 +3624,7 @@
     },
     {
       "Route": "js/app.2n0c01t7ec.js",
-      "AssetFile": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\js\\app.js",
+      "AssetFile": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\js\\app.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3669,7 +3669,7 @@
     },
     {
       "Route": "js/app.js",
-      "AssetFile": "E:\\ASAgym\\Gym.Desktop\\Gym.Web\\wwwroot\\js\\app.js",
+      "AssetFile": "E:\\Projects\\gym\\ASAGymWeb\\wwwroot\\js\\app.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
