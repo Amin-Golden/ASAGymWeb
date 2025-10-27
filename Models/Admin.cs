@@ -3,24 +3,26 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Gym.Web.Models;
 
-[Table("instructors")]
-public class Instructor
+[Table("admins")]
+public class Admin
 {
     [Column("id")]
     public long Id { get; set; }
     
     [Required]
-    [Column("package_id")]
-    public long PackageId { get; set; }
+    [StringLength(50)]
+    [Column("adminID")]
+    public string AdminId { get; set; } = string.Empty;
     
     [Required]
     [StringLength(50)]
     [Column("fname")]
     public string FirstName { get; set; } = string.Empty;
     
+    [Required]
     [StringLength(50)]
     [Column("lname")]
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = string.Empty;
     
     [Required]
     [Column("dob")]
@@ -31,36 +33,17 @@ public class Instructor
     public bool IsMale { get; set; }
     
     [Required]
-    [Column("salary")]
-    public float Salary { get; set; }
-    
-    [StringLength(50)]
-    [Column("email")]
-    public string? Email { get; set; }
-    
-    [Required]
-    [Column("title")]
-    public string Title { get; set; } = string.Empty;
-    
-    [Column("description")]
-    public string? Description { get; set; }
+    [Column("password")]
+    public string Password { get; set; } = string.Empty;
     
     [Required]
     [StringLength(13)]
     [Column("phone_number")]
     public string PhoneNumber { get; set; } = string.Empty;
     
-    [Column("image_path")]
-    public string? ImagePath { get; set; }
-    
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
-    // Navigation properties
-    public Package Package { get; set; } = null!;
-    public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
-    public ICollection<Session> Sessions { get; set; } = new List<Session>();
 }

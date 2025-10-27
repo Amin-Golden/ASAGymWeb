@@ -18,6 +18,9 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Session> Sessions { get; set; }
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<GymSession> GymSessions { get; set; }
+    public DbSet<FaceEmbedding> FaceEmbeddings { get; set; }
+    public DbSet<AccessLog> AccessLogs { get; set; }
+    public DbSet<Admin> Admins { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -84,6 +87,18 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(i => i.PackageId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<FaceEmbedding>()
+            .HasOne(fe => fe.Client)
+            .WithOne(c => c.FaceEmbedding)
+            .HasForeignKey<FaceEmbedding>(fe => fe.ClientId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AccessLog>()
+            .HasOne(al => al.Client)
+            .WithMany(c => c.AccessLogs)
+            .HasForeignKey(al => al.ClientId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Configure indexes
         builder.Entity<GymSession>()
             .HasIndex(gs => gs.ClientId);
@@ -115,5 +130,15 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Client>()
             .HasIndex(c => c.PhoneNumber)
             .IsUnique();
+
+        // Access logs indexes
+        builder.Entity<AccessLog>()
+            .HasIndex(al => al.ClientId);
+
+        builder.Entity<AccessLog>()
+            .HasIndex(al => al.Timestamp);
+
+        builder.Entity<AccessLog>()
+            .HasIndex(al => al.AccessGranted);
     }
 }

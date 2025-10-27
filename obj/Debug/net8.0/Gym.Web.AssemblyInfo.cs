@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gym.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eeffae71093f230a0635fb9ea3f09d90579260b8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+94042600874d3a9e977411150a634b39c91a0d21")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gym.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gym.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

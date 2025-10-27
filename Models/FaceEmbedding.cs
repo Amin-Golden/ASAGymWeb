@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Gym.Web.Models;
 
-[Table("gym_sessions")]
-public class GymSession
+[Table("face_embeddings")]
+public class FaceEmbedding
 {
     [Column("id")]
     public long Id { get; set; }
@@ -14,17 +14,17 @@ public class GymSession
     public long ClientId { get; set; }
     
     [Required]
-    [Column("entrance_time")]
-    public DateTime EntranceTime { get; set; }
+    [Column("embedding")]
+    public byte[] Embedding { get; set; } = Array.Empty<byte>();
     
-    [Column("exit_time")]
-    public DateTime? ExitTime { get; set; }
-    
-    [Column("locker_number")]
-    public int? LockerNumber { get; set; }
+    [Column("confidence")]
+    public float? Confidence { get; set; }
     
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties
     public Client Client { get; set; } = null!;
